@@ -1,0 +1,85 @@
+services:
+
+  db:
+    container_name: mongo
+    image: mongo:4.2
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
+      - MONGO_INITDB_DATABASE=${MONGO_INITDB_DATABASE}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
+    ports:
+      - '27017:27017'
+    volumes:
+      - ./tmp/mongo/data:/data/db
+
+  mongo-express:
+    container_name: mongo-express
+    image: mongo-express
+    depends_on:
+      - db
+    environment:
+      - ME_CONFIG_MONGODB_SERVER=${ME_CONFIG_MONGODB_SERVER}
+      - ME_CONFIG_MONGODB_ADMINUSERNAME=${ME_CONFIG_MONGODB_ADMINUSERNAME}
+      - ME_CONFIG_MONGODB_ADMINPASSWORD=${ME_CONFIG_MONGODB_ADMINPASSWORD}
+      - ME_CONFIG_BASICAUTH_USERNAME=${ME_CONFIG_BASICAUTH_USERNAME}
+      - ME_CONFIG_BASICAUTH_PASSWORD=${ME_CONFIG_BASICAUTH_PASSWORD}
+    ports:
+      - '8081:8081'
+    volumes:
+      - ./tmp/mongo/data:/data/db
+
+  minio:
+    container_name: minio
+    hostname: minio
+    image: quay.io/minio/minio
+    command: "minio server /data --console-address :9001"
+    restart: always
+    ports:
+      - 9000:9000
+      - 9001:9001
+    volumes:
+      - ./tmp/minio/data:/data
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
+
+  frontend:
+    container_name: frontend-service
+    build:
+      context: ./frontend-service
+      dockerfile: ./Dockerfile
+    restart: always
+    env_file:
+      - ./frontend-service/.env
+    volumes:
+      - ./frontend-service/src:/usr/src/app/src
+    ports:
+      - 3000:3000
+
+  backend:
+    container_name: backend-service
+    build:
+      context: ./backend-service
+      dockerfile: ./Dockerfile 
+    restart: always
+    env_file:
+      - ./backend-service/.env
+    ports:
+      - 8080:8080
+    volumes:
+      - ./backend-service:/usr/src/app
+
+  ml:
+    container_name: ml-service
+    build:
+      context: ./ml-service
+      dockerfile: ./Dockerfile 
+    restart: always
+    env_file:
+      - ./ml-service/.env
+    ports:
+      - 8000:8000
+    volumes:
+      - ./ml-service:/usr/src/app
+
+
