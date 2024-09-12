@@ -7,5 +7,8 @@ run-app:
 stop-app:
 	sudo docker compose -f docker-compose.yaml --env-file=./.env down
 
+remove-app:
+	sudo docker compose -f docker-compose.yaml --env-file=./.env down --rmi local
+
 logs:
 	sudo docker compose -f docker-compose.yaml --env-file=./.env logs -f
