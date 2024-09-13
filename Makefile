@@ -1,3 +1,5 @@
+init-app:
+	git submodule update --init --recursive
 build-app:
 	sudo docker compose -f docker-compose.yaml --env-file=./.env build
 
